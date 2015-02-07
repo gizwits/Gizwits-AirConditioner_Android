@@ -1,0 +1,3 @@
+[submodule "airconditioner-android"]
+	path = airconditioner-android
+	url = git@gitlab.xtremeprog.com:lli/xpgsdkv4appbase.git

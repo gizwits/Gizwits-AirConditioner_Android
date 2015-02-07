@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <RelativeLayout
+        android:id="@+id/rlTop"
+        style="@style/TopLayout" >
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:padding="10dp"
+            android:layout_marginLeft="10dp"
+            android:src="@drawable/return_icon" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/change_password"
+            android:textColor="@android:color/white"
+            android:textSize="22sp" />
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/etPswOld"
+        style="@style/EditTextTheme"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="30dp"
+        android:digits="@string/register_name_digits"
+        android:background="@drawable/login_input_box"
+        android:hint="@string/old_password"
+        android:inputType="textPassword" />
+
+    <EditText
+        android:id="@+id/etPswNew"
+        style="@style/EditTextTheme"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="10dp"
+        android:digits="@string/register_name_digits"
+        android:background="@drawable/login_input_box"
+        android:hint="@string/new_password"
+        android:inputType="textPassword" />
+
+    <ToggleButton
+        android:id="@+id/tbPswFlag"
+        android:layout_width="50dp"
+        android:layout_height="24dp"
+        android:layout_gravity="right"
+        android:layout_marginRight="30dp"
+        android:background="@drawable/toggle_selector"
+        android:textOff=""
+        android:textOn="" />
+
+    <Button
+        android:id="@+id/btnConfirm"
+        style="@style/ButtonBlue"
+        android:layout_marginTop="10dp"
+        android:text="@string/confirm" />
+
+</LinearLayout>

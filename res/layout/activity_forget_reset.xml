@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/rlTop"
+        style="@style/TopLayout">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="10dp"
+            android:padding="10dp"
+            android:src="@drawable/return_icon" />
+
+        <TextView
+            android:id="@+id/ivStep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="@string/forget_password"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
+    </RelativeLayout>
+
+    <EditText
+        android:id="@+id/etName"
+        style="@style/EditTextTheme"
+        android:layout_marginTop="30dp"
+        android:hint="@string/forget_password_hint1" />
+
+    <Button
+        android:id="@+id/btnGetCode"
+        style="@style/ButtonBlue"
+        android:text="@string/forget_password_get_verifycode" />
+
+    <LinearLayout
+        android:id="@+id/llInputCode"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/etInputCode"
+            style="@style/EditTextTheme"
+            android:layout_weight="1"
+            android:hint="@string/forget_password_verifycode" />
+
+        <Button
+            android:id="@+id/btnReGetCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/button_blue_short"
+            android:text="@string/forget_password_get_verifycode_again"
+            android:textColor="@android:color/background_light"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llInputPsw"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:background="@drawable/login_input_box"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <EditText
+            android:inputType="textPassword"
+            android:id="@+id/etInputPsw"
+            style="@style/EditTextTheme"
+            android:layout_weight="1"
+            android:digits="@string/register_name_digits"
+            android:background="@android:color/transparent"
+            android:hint="@string/password" />
+
+        <ToggleButton
+            android:id="@+id/tbPswFlag"
+            android:layout_width="50dp"
+            android:layout_height="24dp"
+            android:background="@drawable/toggle_selector"
+            android:textOff=""
+            android:textOn="" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnSure"
+        style="@style/ButtonBlue"
+        android:text="@string/confirm" />
+
+
+</LinearLayout>
