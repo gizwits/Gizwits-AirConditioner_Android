@@ -42,9 +42,11 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.gizwits.aircondition.R;
 import com.gizwits.framework.activity.BaseActivity;
+import com.gizwits.framework.activity.device.DeviceListActivity;
 import com.gizwits.framework.adapter.SearchListAdapter;
 import com.gizwits.framework.utils.DialogManager;
 import com.xpg.common.system.IntentUtils;
@@ -113,6 +115,9 @@ public class SearchDeviceActivity extends BaseActivity implements
 
     /** The is waiting wifi. */
     private boolean isWaitingWifi = false;
+    
+    /** The boolean isRegister. */
+	private boolean isRegister = false;
 
     /**
      * ClassName: Enum handler_key. <br/>
@@ -242,6 +247,11 @@ public class SearchDeviceActivity extends BaseActivity implements
             }
         });
         allDeviceList = new ArrayList<XPGWifiDevice>();
+        
+        Bundle mBundle = getIntent().getExtras();
+		if (mBundle != null) {
+			isRegister = mBundle.getBoolean("isRegister");
+		}
     }
 
     /**
@@ -267,6 +277,8 @@ public class SearchDeviceActivity extends BaseActivity implements
                     // 跳转到二维码扫描activity
                     IntentUtils.getInstance().startActivity(this,
                             CaptureActivity.class);
+                }else{
+                	Toast.makeText(this, R.string.please_connect_network, Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.btnAddGokit:
@@ -339,9 +351,15 @@ public class SearchDeviceActivity extends BaseActivity implements
         }
     }
 
-	@Override
+    @Override
 	public void onBackPressed() {
-		finish();
+		if (isRegister) {
+			IntentUtils.getInstance().startActivity(SearchDeviceActivity.this,
+					DeviceListActivity.class);
+			finish();
+		} else {
+			finish();
+		}
 	}
 
     

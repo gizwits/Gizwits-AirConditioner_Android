@@ -17,11 +17,16 @@
  */
 package com.gizwits.framework.activity.device;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -31,7 +36,6 @@ import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.gizwits.aircondition.R;
 import com.gizwits.aircondition.activity.control.MainControlActivity;
@@ -41,7 +45,6 @@ import com.gizwits.framework.activity.onboarding.BindingDeviceActivity;
 import com.gizwits.framework.activity.onboarding.SearchDeviceActivity;
 import com.gizwits.framework.adapter.DeviceListAdapter;
 import com.gizwits.framework.utils.DialogManager;
-import com.gizwits.framework.utils.Historys;
 import com.gizwits.framework.widget.RefreshableListView;
 import com.gizwits.framework.widget.RefreshableListView.OnRefreshListener;
 import com.xpg.common.system.IntentUtils;
@@ -74,7 +77,7 @@ public class DeviceListActivity extends BaseActivity implements
 
 	/** The tv init date. */
 	private RefreshableListView lvDevices;
-	// private List<XPGWifiDevice> deviceList;
+
 	/** The device list adapter. */
 	private DeviceListAdapter deviceListAdapter;
 
@@ -83,6 +86,12 @@ public class DeviceListActivity extends BaseActivity implements
 
 	/** The dialog. */
 	private Dialog dialog;
+	
+	/** 登陆设备超时时间 */
+	private int LoginDeviceTimeOut = 60000;
+
+	/** 网络状态广播接受器. */
+	private ConnecteChangeBroadcast mChangeBroadcast = new ConnecteChangeBroadcast();
 
 	/**
 	 * The boolean isExit.
@@ -139,16 +148,18 @@ public class DeviceListActivity extends BaseActivity implements
 				break;
 
 			case LOGIN_SUCCESS:
-				progressDialog.cancel();
+				DialogManager.dismissDialog(DeviceListActivity.this, progressDialog);
 				IntentUtils.getInstance().startActivity(
 						DeviceListActivity.this, MainControlActivity.class);
 				break;
 
 			case LOGIN_FAIL:
-
+				DialogManager.dismissDialog(DeviceListActivity.this, progressDialog);
+				ToastUtils.showShort(DeviceListActivity.this, "连接失败");
 				break;
 			case LOGIN_TIMEOUT:
-
+				DialogManager.dismissDialog(DeviceListActivity.this, progressDialog);
+				ToastUtils.showShort(DeviceListActivity.this, "连接失败");
 				break;
 			case EXIT:
 				isExit = false;
@@ -187,6 +198,8 @@ public class DeviceListActivity extends BaseActivity implements
 	@Override
 	public void onResume() {
 		super.onResume();
+		deviceListAdapter.changeDatas(new ArrayList<XPGWifiDevice>());
+		
 		if (getIntent().getBooleanExtra("isbind", false)) {
 
 			mCenter.cBindDevice(setmanager.getUid(), setmanager.getToken(),
@@ -196,6 +209,16 @@ public class DeviceListActivity extends BaseActivity implements
 			getList();
 		}
 
+		IntentFilter filter = new IntentFilter();
+		filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
+		registerReceiver(mChangeBroadcast, filter);
+
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		unregisterReceiver(mChangeBroadcast);
 	}
 
 	/**
@@ -219,6 +242,7 @@ public class DeviceListActivity extends BaseActivity implements
 		});
 		progressDialog = new ProgressDialog(this);
 		progressDialog.setMessage("连接中，请稍候。");
+		progressDialog.setCancelable(false);
 	}
 
 	/**
@@ -250,6 +274,10 @@ public class DeviceListActivity extends BaseActivity implements
 							@Override
 							public void onClick(View v) {
 								setmanager.setToken("");
+								setmanager.setUserName("");
+								setmanager.setPassword("");
+								setmanager.setUid("");
+								
 								DialogManager.dismissDialog(
 										DeviceListActivity.this, dialog);
 								ToastUtils.showShort(DeviceListActivity.this,
@@ -292,7 +320,6 @@ public class DeviceListActivity extends BaseActivity implements
 								+ tempDevice.getDid() + ";passcode="
 								+ tempDevice.getPasscode());
 				loginDevice(tempDevice);
-				progressDialog.show();
 			} else {
 				// TODO 未设备
 				Log.i(TAG,
@@ -322,7 +349,6 @@ public class DeviceListActivity extends BaseActivity implements
 								+ tempDevice.getDid() + ";passcode="
 								+ tempDevice.getPasscode());
 				loginDevice(tempDevice);
-				progressDialog.show();
 			}
 		}
 
@@ -335,9 +361,15 @@ public class DeviceListActivity extends BaseActivity implements
 	 *            the xpg wifi device
 	 */
 	private void loginDevice(XPGWifiDevice xpgWifiDevice) {
+		DialogManager.showDialog(DeviceListActivity.this, progressDialog);
 		mXpgWifiDevice = xpgWifiDevice;
 		mXpgWifiDevice.setListener(deviceListener);
-		mXpgWifiDevice.login(setmanager.getUid(), setmanager.getToken());
+		if(mXpgWifiDevice.isConnected()){
+			handler.sendEmptyMessage(handler_key.LOGIN_SUCCESS.ordinal());
+		}else{
+			handler.sendEmptyMessageDelayed(handler_key.LOGIN_TIMEOUT.ordinal(), LoginDeviceTimeOut);
+			mXpgWifiDevice.login(setmanager.getUid(), setmanager.getToken());
+		}
 	}
 
 	/*
@@ -348,6 +380,7 @@ public class DeviceListActivity extends BaseActivity implements
 	 */
 	@Override
 	protected void didLogin(XPGWifiDevice device, int result) {
+		handler.removeMessages(handler_key.LOGIN_TIMEOUT.ordinal());
 		if (result == 0) {
 			mXpgWifiDevice = device;
 			handler.sendEmptyMessage(handler_key.LOGIN_SUCCESS.ordinal());
@@ -376,10 +409,16 @@ public class DeviceListActivity extends BaseActivity implements
 	 */
 	@Override
 	protected void didDiscovered(int error, List<XPGWifiDevice> deviceList) {
-		Log.d("onDiscovered", "Device count:" + deviceList.size());
 		deviceslist = deviceList;
 		handler.sendEmptyMessage(handler_key.FOUND.ordinal());
 
+	}
+
+	@Override
+	protected void didDisconnected(XPGWifiDevice device) {
+		if (mXpgWifiDevice.getDid().equals(device.getDid())) {
+			handler.sendEmptyMessage(handler_key.LOGIN_FAIL.ordinal());
+		}
 	}
 
 	/*
@@ -405,6 +444,29 @@ public class DeviceListActivity extends BaseActivity implements
 	@Override
 	public void onBackPressed() {
 		exit();
+	}
+
+	/**
+	 * 广播监听器，监听wifi连上的广播.
+	 * 
+	 * @author Lien
+	 */
+	public class ConnecteChangeBroadcast extends BroadcastReceiver {
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see
+		 * android.content.BroadcastReceiver#onReceive(android.content.Context,
+		 * android.content.Intent)
+		 */
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent
+					.getAction())) {
+				getList();
+			}
+		}
 	}
 
 }

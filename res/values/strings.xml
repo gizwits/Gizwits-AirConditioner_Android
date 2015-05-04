@@ -4,10 +4,12 @@
     <string name="wifi_first">请先连上Wi-Fi网络</string>
     <string name="wifi_name">Wi-Fi名称</string>
     <string name="tip_exit">再按一次退出程序</string>
+    <string name="please_connect_network">请连接网络！</string>
     <string name="title_about">关于</string>
     <string name="pull_to_refresh">下拉刷新</string>
     <string name="dialog_sure_to_delete">确定要删除设备吗？</string>
     <string name="dialog_sure_to_off">确定要关闭设备吗？</string>
+    <string name="dialog_sure_psw_change">账号新密码即将生效，\n是否确认修改？</string>
     <string name="dialog_btn_back">返回</string>
     <string name="dialog_btn_logout">注销</string>
     <string name="dialog_btn_delete">删除</string>
@@ -15,6 +17,7 @@
     <string name="dialog_btn_confirm">确定</string>
     <string name="dialog_nonet_msg">手机还未连上Wi-Fi，请连接上您希望设备接入的Wi-Fi（如您家里的Wi-Fi），连接后请返回APP，将自动跳转到下一步</string>
     <string name="dialog_logout_msg">确定要注销，返回登陆界面吗？</string>
+    <string name="dialog_disconnect">连接已断开</string>
     <string name="register_name_digits">0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLIMNOPQRSTUVWXYZ</string>
     <string name="airlink_tips_start">请按下设备按键,灯闪即表示设备已进入配置模式,\n点击开始配置</string>
     <string name="airlink_btn_start">开始配置</string>
@@ -41,6 +44,7 @@
 	<string name="confirm">确定</string>
 	<string name="cancel">取消</string>
 	<string name="password">密码</string>
+	<string name="setting_password">设置密码</string>
 	<string name="curve_text1">室内温度曲线</string>
 	<string name="device_list">设备列表</string>
 	<string name="device_manage">设备管理</string>
@@ -54,6 +58,8 @@
 	<string name="forget_password">忘记密码</string>
 	<string name="forget_password_hint1">手机号/邮箱</string>
 	<string name="forget_password_get_verifycode">获取验证码</string>
+	<string name="forget_password_get_verifycode2">获取验\n证码</string>
+	<string name="forget_password_get_verifycode3">秒后\n重新获取</string>
 	<string name="forget_password_verifycode">验证码</string>
 	<string name="forget_password_get_verifycode_again">重新获取\n验证码</string>
     <string name="help">帮助</string>
@@ -105,6 +111,8 @@
 	<string name="user_manage">用户管理</string>
 	<string name="user_name">用户名</string>
 	<string name="logout">注销</string>
+	<string name="change_success">修改成功</string>
+	<string name="change_fail">修改失败</string>
 	
 	<string name="no_device">没有设备</string>
 	<string name="device_online">在线设备</string>
@@ -116,4 +124,7 @@
 	<string name="dialog_call_sure_to_logout">确定要注销，返回登陆界面吗？</string>
 	<string name="call_customer_service_hot_line">拨打客服热线</string>
 	<string name="qr_code_tips">将二维码放入框内，即刻自动扫描</string>
+	
+	<string name="reset_by_phone">通过手机重置密码</string>
+	<string name="reset_by_email">通过邮箱重置密码</string>
 </resources>

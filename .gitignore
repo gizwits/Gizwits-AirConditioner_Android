@@ -1,4 +1,6 @@
 <<<<<<< HEAD
+<<<<<<< 4696aef8af6154651b0085276a8434a125575a4b
+<<<<<<< HEAD
 /XPGSdkV4AppBase/bin
 =======
 # Built application files
@@ -28,3 +30,13 @@ proguard/
 # Log Files
 *.log
 >>>>>>> github/master
+=======
+/bin/gen
+/bin
+/gen
+>>>>>>> 63ac33f344535612135390d4711556d8f60d2ef2
+=======
+/bin/gen
+/bin
+/gen
+>>>>>>> refs/heads/master
