@@ -69,6 +69,7 @@
             android:launchMode="singleTask" />
         <activity android:name="com.gizwits.aircondition.activity.control.AlarmListActicity" />
         <activity android:name="com.gizwits.aircondition.activity.control.CurveActivity" />
+        <activity android:name="com.gizwits.framework.widget.AboutVersionActivity"></activity>
     </application>
 
 </manifest>
