@@ -17,6 +17,7 @@
  */
 package com.gizwits.framework.activity.onboarding;
 
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -37,6 +38,8 @@ import com.gizwits.framework.activity.device.DeviceListActivity;
 import com.xpg.common.system.IntentUtils;
 import com.xpg.common.useful.StringUtils;
 import com.xtremeprog.xpgconnect.XPGWifiDevice;
+import com.xtremeprog.xpgconnect.XPGWifiSDK;
+import com.xtremeprog.xpgconnect.XPGWifiSDK.XPGWifiGAgentType;
 
 
 /**
@@ -47,7 +50,10 @@ import com.xtremeprog.xpgconnect.XPGWifiDevice;
  * @author Lien
  */
 public class AirlinkActivity extends BaseActivity implements OnClickListener {
-
+	private int mode_temp;
+	ArrayList<XPGWifiGAgentType> types;
+	ArrayList<XPGWifiSDK.XPGWifiGAgentType> typeList;
+	
     /**
      * The btn config.
      */
@@ -215,7 +221,17 @@ public class AirlinkActivity extends BaseActivity implements OnClickListener {
             } else {
                 strPsw = "";
             }
-        }
+            mode_temp = getIntent().getIntExtra("Temp", 0);
+
+		}
+		typeList = new ArrayList<XPGWifiSDK.XPGWifiGAgentType>();
+		typeList.add(XPGWifiSDK.XPGWifiGAgentType.XPGWifiGAgentTypeMXCHIP);// 庆科
+		typeList.add(XPGWifiSDK.XPGWifiGAgentType.XPGWifiGAgentTypeHF);// 汉枫
+		typeList.add(XPGWifiSDK.XPGWifiGAgentType.XPGWifiGAgentTypeRTK);// 瑞昱
+		typeList.add(XPGWifiSDK.XPGWifiGAgentType.XPGWifiGAgentTypeWM);// 联盛德
+		typeList.add(XPGWifiSDK.XPGWifiGAgentType.XPGWifiGAgentTypeESP);// 乐鑫
+		typeList.add(XPGWifiSDK.XPGWifiGAgentType.XPGWifiGAgentTypeQCA);// 高通
+		typeList.add(XPGWifiSDK.XPGWifiGAgentType.XPGWifiGAgentTypeTI);// TI
     }
 
     private enum UI_STATE{
@@ -291,7 +307,9 @@ public class AirlinkActivity extends BaseActivity implements OnClickListener {
                 handler.sendEmptyMessage(handler_key.TICK_TIME.ordinal());
             }
         }, 1000, 1000);
-        mCenter.cSetAirLink(strSSid, strPsw);
+        types = new ArrayList<XPGWifiSDK.XPGWifiGAgentType>();
+		types.add(typeList.get(mode_temp));
+		mCenter.cSetAirLink(strSSid, strPsw, types);
     }
 
     @Override

@@ -24,10 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -50,7 +51,6 @@ import android.widget.RadioGroup.OnCheckedChangeListener;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-
 import com.gizwits.aircondition.R;
 import com.gizwits.framework.activity.BaseActivity;
 import com.gizwits.framework.activity.account.UserManageActivity;
@@ -65,6 +65,7 @@ import com.gizwits.framework.utils.DensityUtil;
 import com.gizwits.framework.utils.DialogManager;
 import com.gizwits.framework.utils.StringUtils;
 import com.gizwits.framework.utils.DialogManager.OnTimingChosenListener;
+import com.gizwits.framework.widget.AboutVersionActivity;
 import com.gizwits.framework.widget.CircularSeekBar;
 import com.gizwits.framework.widget.SlidingMenu;
 import com.gizwits.framework.widget.SlidingMenu.SlidingMenuListener;
@@ -79,9 +80,8 @@ import com.xtremeprog.xpgconnect.XPGWifiDevice;
  * 
  * @author Lien
  */
-public class MainControlActivity extends BaseActivity implements
-		OnClickListener, OnCheckedChangeListener,
-		CompoundButton.OnCheckedChangeListener ,SlidingMenuListener{
+public class MainControlActivity extends BaseActivity implements OnClickListener, OnCheckedChangeListener,
+		CompoundButton.OnCheckedChangeListener, SlidingMenuListener {
 
 	/** The tag. */
 	private final String TAG = "MainControlActivity";
@@ -229,7 +229,7 @@ public class MainControlActivity extends BaseActivity implements
 
 	/** 是否超时标志位 */
 	private boolean isTimeOut = false;
-	
+
 	/** 获取状态超时时间 */
 	private int GetStatueTimeOut = 30000;
 
@@ -285,17 +285,21 @@ public class MainControlActivity extends BaseActivity implements
 	/**
 	 * The handler.
 	 */
+	
+	@SuppressLint("HandlerLeak")
 	Handler handler = new Handler() {
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
 			handler_key key = handler_key.values()[msg.what];
 			switch (key) {
 			case RECEIVED:
+				if (deviceDataMap == null) {
+					return;
+				}
 				try {
 					if (deviceDataMap.get("data") != null) {
 						Log.i("info", (String) deviceDataMap.get("data"));
-						inputDataToMaps(statuMap,
-								(String) deviceDataMap.get("data"));
+						inputDataToMaps(statuMap, (String) deviceDataMap.get("data"));
 
 					}
 					alarmList.clear();
@@ -319,8 +323,9 @@ public class MainControlActivity extends BaseActivity implements
 			case UPDATE_UI:
 				if (mView.isOpen())
 					break;
-				
+
 				if (statuMap != null && statuMap.size() > 0) {
+					Log.i("Apptest", statuMap.toString());
 					handler.removeMessages(handler_key.GET_STATUE_TIMEOUT.ordinal());
 					setListenNull(true);
 					updateTemperatureUnit(isCentigrade);
@@ -344,18 +349,16 @@ public class MainControlActivity extends BaseActivity implements
 						updateOffTime(Integer.parseInt(timeOff));
 					}
 					updateFanSpeed((String) statuMap.get(JsonKeys.FAN_SPEED));
-					updateShakeSwitch((Boolean) statuMap
-							.get(JsonKeys.FAN_SHAKE));
+					updateShakeSwitch((Boolean) statuMap.get(JsonKeys.FAN_SHAKE));
 					setListenNull(false);
-					
-					DialogManager.dismissDialog(MainControlActivity.this,
-							progressDialogRefreshing);
+
+					DialogManager.dismissDialog(MainControlActivity.this, progressDialogRefreshing);
 				}
 				break;
 			case ALARM:
 				if (mView.isOpen())
 					break;
-				
+
 				// 是否需要弹dialog判断
 				boolean isNeedDialog = false;
 				for (DeviceAlarm alarm : alarmList) {
@@ -373,8 +376,7 @@ public class MainControlActivity extends BaseActivity implements
 
 				if (alarmList != null && alarmList.size() > 0) {
 					if (isNeedDialog) {
-						DialogManager.showDialog(MainControlActivity.this,
-								mFaultDialog);
+						DialogManager.showDialog(MainControlActivity.this, mFaultDialog);
 					}
 					setTipsLayoutVisiblity(true, alarmList.size());
 				} else {
@@ -383,14 +385,10 @@ public class MainControlActivity extends BaseActivity implements
 				break;
 			case DISCONNECTED:
 				if (!mView.isOpen()) {
-					DialogManager.dismissDialog(MainControlActivity.this,
-							progressDialogRefreshing);
-					DialogManager.dismissDialog(MainControlActivity.this,
-							mFaultDialog);
-					DialogManager.dismissDialog(MainControlActivity.this,
-							mPowerOffDialog);
-					DialogManager.showDialog(MainControlActivity.this,
-							mDisconnectDialog);
+					DialogManager.dismissDialog(MainControlActivity.this, progressDialogRefreshing);
+					DialogManager.dismissDialog(MainControlActivity.this, mFaultDialog);
+					DialogManager.dismissDialog(MainControlActivity.this, mPowerOffDialog);
+					DialogManager.showDialog(MainControlActivity.this, mDisconnectDialog);
 				}
 				break;
 			case GET_STATUE:
@@ -417,8 +415,7 @@ public class MainControlActivity extends BaseActivity implements
 
 	// 0.制冷, 1.送风, 2.除湿, 3.自动,4.制热
 	/** The mode images. */
-	private int[] modeImages = { R.drawable.icon_model_cool,
-			R.drawable.icon_model_wind, R.drawable.icon_model_water,
+	private int[] modeImages = { R.drawable.icon_model_cool, R.drawable.icon_model_wind, R.drawable.icon_model_water,
 			R.drawable.icon_model_auto, R.drawable.icon_model_hot };
 
 	// 0.制冷, 1.送风, 2.除湿, 3.自动,4.制热
@@ -468,7 +465,7 @@ public class MainControlActivity extends BaseActivity implements
 		}
 		super.onResume();
 	}
-	
+
 	/**
 	 * 更新菜单界面.
 	 * 
@@ -478,20 +475,19 @@ public class MainControlActivity extends BaseActivity implements
 		initBindList();
 		mAdapter.setChoosedPos(-1);
 		for (int i = 0; i < bindlist.size(); i++) {
-			if (bindlist.get(i).getDid()
-					.equalsIgnoreCase(mXpgWifiDevice.getDid()))
+			if (bindlist.get(i).getDid().equalsIgnoreCase(mXpgWifiDevice.getDid()))
 				mAdapter.setChoosedPos(i);
 		}
-		
-		//当前绑定列表没有当前操作设备
-		if(mAdapter.getChoosedPos()==-1){
-		mAdapter.setChoosedPos(0);
-		mXpgWifiDevice=mAdapter.getItem(0);
-		alarmList.clear();
+
+		// 当前绑定列表没有当前操作设备
+		if (mAdapter.getChoosedPos() == -1) {
+			mAdapter.setChoosedPos(0);
+			mXpgWifiDevice = mAdapter.getItem(0);
+			alarmList.clear();
 		}
-				
+
 		mAdapter.notifyDataSetChanged();
-		
+
 		int px = DensityUtil.dip2px(this, mAdapter.getCount() * 50);
 		lvDevice.setLayoutParams(new android.widget.LinearLayout.LayoutParams(
 				android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, px));
@@ -505,8 +501,7 @@ public class MainControlActivity extends BaseActivity implements
 	private void refreshMainControl() {
 		mXpgWifiDevice.setListener(deviceListener);
 		DialogManager.showDialog(this, progressDialogRefreshing);
-		handler.sendEmptyMessageDelayed(
-				handler_key.GET_STATUE_TIMEOUT.ordinal(), GetStatueTimeOut);
+		handler.sendEmptyMessageDelayed(handler_key.GET_STATUE_TIMEOUT.ordinal(), GetStatueTimeOut);
 		handler.sendEmptyMessage(handler_key.GET_STATUE.ordinal());
 	}
 
@@ -518,7 +513,7 @@ public class MainControlActivity extends BaseActivity implements
 		alarmList = new ArrayList<DeviceAlarm>();
 		alarmShowList = new ArrayList<String>();
 		height = llBottom.getHeight();
-		
+
 		refreshMenu();
 		refreshMainControl();
 	}
@@ -573,25 +568,31 @@ public class MainControlActivity extends BaseActivity implements
 		});
 		seekBar.setSeekContinueChangeListener(new CircularSeekBar.OnSeekContinueChangeListener() {
 			@Override
-			public void onProgressContinueChange(CircularSeekBar view,
-					int newProgress) {
+			public void onProgressContinueChange(CircularSeekBar view, int newProgress) {
 				temperatureC = (short) (newProgress * 14 / 100.00 + 16);
 				temperatureF = (short) getCelToFah(temperatureC);
-				tvSettingTemerature.setText((isCentigrade ? temperatureC
-						: temperatureF) + "");
+				tvSettingTemerature.setText((isCentigrade ? temperatureC : temperatureF) + "");
 				tvSettingUnit.setText(isCentigrade ? "℃" : "℉");
 			}
 		});
-		mPowerOffDialog = DialogManager.getPowerOffDialog(this,
-				new OnClickListener() {
+		mPowerOffDialog = DialogManager.getPowerOffDialog(this, new OnClickListener() {
 
-					@Override
-					public void onClick(View arg0) {
-						mCenter.cSwitchOn(mXpgWifiDevice, false);
-						DialogManager.dismissDialog(MainControlActivity.this,
-								mPowerOffDialog);
-					}
-				});
+			@Override
+			public void onClick(View arg0) {
+				mCenter.cSwitchOn(mXpgWifiDevice, false);
+				DialogManager.dismissDialog(MainControlActivity.this, mPowerOffDialog);
+			}
+		});
+
+		mFaultDialog = DialogManager.getDeviceErrirDialog(MainControlActivity.this, "设备故障", new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(Intent.ACTION_CALL, Uri.parse("tel:10086"));
+				startActivity(intent);
+				mFaultDialog.dismiss();
+			}
+		});
 
 		mAdapter = new MenuDeviceAdapter(this, bindlist);
 		lvDevice = (ListView) findViewById(R.id.lvDevice);
@@ -601,18 +602,14 @@ public class MainControlActivity extends BaseActivity implements
 		progressDialogRefreshing.setMessage("正在更新状态,请稍后。");
 		progressDialogRefreshing.setCancelable(false);
 
-		mDisconnectDialog = DialogManager.getDisconnectDialog(this,
-				new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						DialogManager.dismissDialog(MainControlActivity.this,
-								mDisconnectDialog);
-						IntentUtils.getInstance().startActivity(
-								MainControlActivity.this,
-								DeviceListActivity.class);
-						finish();
-					}
-				});
+		mDisconnectDialog = DialogManager.getDisconnectDialog(this, new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				DialogManager.dismissDialog(MainControlActivity.this, mDisconnectDialog);
+				IntentUtils.getInstance().startActivity(MainControlActivity.this, DeviceListActivity.class);
+				finish();
+			}
+		});
 	}
 
 	/**
@@ -647,19 +644,19 @@ public class MainControlActivity extends BaseActivity implements
 
 		lvDevice.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
+			public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+				if (!mView.isOpen()) {
+					return;
+				}
 				if (!mAdapter.getItem(position).isOnline())
 					return;
-				
-				
+
 				if (mAdapter.getChoosedPos() != position) {
 					alarmShowList.clear();
 					mAdapter.setChoosedPos(position);
 					mXpgWifiDevice = bindlist.get(position);
 				}
 
-				
 				mView.toggle();
 			}
 		});
@@ -684,9 +681,8 @@ public class MainControlActivity extends BaseActivity implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * android.widget.RadioGroup.OnCheckedChangeListener#onCheckedChanged(android
-	 * .widget.RadioGroup, int)
+	 * @see android.widget.RadioGroup.OnCheckedChangeListener#onCheckedChanged(
+	 * android .widget.RadioGroup, int)
 	 */
 	@Override
 	public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -734,10 +730,8 @@ public class MainControlActivity extends BaseActivity implements
 	 */
 	private void updateTemperatureUnit(boolean centigrade) {
 		setmanager.setUnit(centigrade);
-		tvInnerTemperature.setText((centigrade ? innerTemperatureC
-				: innerTemperatureF) + "");
-		tvSettingTemerature.setText((centigrade ? temperatureC : temperatureF)
-				+ "");
+		tvInnerTemperature.setText((centigrade ? innerTemperatureC : innerTemperatureF) + "");
+		tvSettingTemerature.setText((centigrade ? temperatureC : temperatureF) + "");
 		ctvUnit.setText(centigrade ? "摄氏" : "华氏");
 		tvInnerUnit.setText(centigrade ? "℃" : "℉");
 		tvSettingUnit.setText(centigrade ? "℃" : "℉");
@@ -762,8 +756,7 @@ public class MainControlActivity extends BaseActivity implements
 			seekBar.postInvalidateDelayed(1000);
 		}
 		temperatureF = (short) getCelToFah(temperatureC);
-		tvSettingTemerature
-				.setText((isCentigrade ? temperatureC : temperatureF) + "");
+		tvSettingTemerature.setText((isCentigrade ? temperatureC : temperatureF) + "");
 
 	}
 
@@ -779,8 +772,7 @@ public class MainControlActivity extends BaseActivity implements
 		}
 		innerTemperatureC = temperature;
 		innerTemperatureF = (short) getCelToFah(innerTemperatureC);
-		tvInnerTemperature.setText((isCentigrade ? innerTemperatureC
-				: innerTemperatureF) + "");
+		tvInnerTemperature.setText((isCentigrade ? innerTemperatureC : innerTemperatureF) + "");
 	}
 
 	/*
@@ -790,7 +782,7 @@ public class MainControlActivity extends BaseActivity implements
 	 */
 	@Override
 	public void onClick(View v) {
-		
+
 		if (mView.isOpen()) {
 			return;
 		}
@@ -826,40 +818,35 @@ public class MainControlActivity extends BaseActivity implements
 			isShow = !isShow;
 			break;
 		case R.id.tvTimeOff:
-			DialogManager.getWheelTimingDialog(this,
-					new OnTimingChosenListener() {
+			DialogManager.getWheelTimingDialog(this, new OnTimingChosenListener() {
 
-						@Override
-						public void timingChosen(int time) {
-							// 设置定时开机时间
-							mCenter.cTimeOff(mXpgWifiDevice, time);
-							timingOff = time;
-							tvTimeOff.setText(timingOff > 0 ? timingOff
-									+ "小时后关机" : "定时关机");
+				@Override
+				public void timingChosen(int time) {
+					// 设置定时开机时间
+					mCenter.cTimeOff(mXpgWifiDevice, time);
+					timingOff = time;
+					tvTimeOff.setText(timingOff > 0 ? timingOff + "小时后关机" : "定时关机");
 
-						}
-					}, " 定时关机", timingOff == 0 ? 24 : timingOff - 1).show();
+				}
+			}, " 定时关机", timingOff == 0 ? 24 : timingOff - 1).show();
 			break;
 		case R.id.tvPowerOnStr:
-			DialogManager.getWheelTimingDialog(this,
-					new OnTimingChosenListener() {
+			DialogManager.getWheelTimingDialog(this, new OnTimingChosenListener() {
 
-						@Override
-						public void timingChosen(int time) {
-							// 设置定时开机时间
-							mCenter.cTimeOn(mXpgWifiDevice, time);
-							timingOn = time;
-							tvPowerOnStr.setText(timingOn > 0 ? timingOn
-									+ "小时后开机" : "定时开机");
+				@Override
+				public void timingChosen(int time) {
+					// 设置定时开机时间
+					mCenter.cTimeOn(mXpgWifiDevice, time);
+					timingOn = time;
+					tvPowerOnStr.setText(timingOn > 0 ? timingOn + "小时后开机" : "定时开机");
 
-						}
-					}, " 定时开机", timingOn == 0 ? 24 : timingOn - 1).show();
+				}
+			}, " 定时开机", timingOn == 0 ? 24 : timingOn - 1).show();
 			break;
 		case R.id.rlAlarmTips:
 		case R.id.tvTitle:
 			if (alarmList != null && alarmList.size() > 0) {
-				Intent intent = new Intent(MainControlActivity.this,
-						AlarmListActicity.class);
+				Intent intent = new Intent(MainControlActivity.this, AlarmListActicity.class);
 				intent.putExtra("alarm_list", alarmList);
 				startActivity(intent);
 			}
@@ -871,35 +858,35 @@ public class MainControlActivity extends BaseActivity implements
 			isShow = false;
 			break;
 		case R.id.tvCurve:
-			IntentUtils.getInstance().startActivity(MainControlActivity.this,
-					CurveActivity.class);
+			IntentUtils.getInstance().startActivity(MainControlActivity.this, CurveActivity.class);
 			break;
 		}
 	}
 
 	public void onClickSlipBar(View view) {
+		if (!mView.isOpen()) {
+			return;
+		}
 		switch (view.getId()) {
 		case R.id.rlDevice:
-			IntentUtils.getInstance().startActivity(MainControlActivity.this,
-					DeviceManageListActivity.class);
+			IntentUtils.getInstance().startActivity(MainControlActivity.this, DeviceManageListActivity.class);
 			break;
 		case R.id.rlAbout:
-			IntentUtils.getInstance().startActivity(MainControlActivity.this,
-					AboutActivity.class);
+			IntentUtils.getInstance().startActivity(MainControlActivity.this, AboutActivity.class);
+			break;
+		case R.id.rlAbout_Demo:
+			IntentUtils.getInstance().startActivity(MainControlActivity.this, AboutVersionActivity.class);
 			break;
 		case R.id.rlAccount:
-			IntentUtils.getInstance().startActivity(MainControlActivity.this,
-					UserManageActivity.class);
+			IntentUtils.getInstance().startActivity(MainControlActivity.this, UserManageActivity.class);
 			break;
 		case R.id.rlHelp:
-			IntentUtils.getInstance().startActivity(MainControlActivity.this,
-					HelpActivity.class);
+			IntentUtils.getInstance().startActivity(MainControlActivity.this, HelpActivity.class);
 			break;
 		case R.id.btnDeviceList:
 			mCenter.cDisconnect(mXpgWifiDevice);
 			DisconnectOtherDevice();
-			IntentUtils.getInstance().startActivity(MainControlActivity.this,
-					DeviceListActivity.class);
+			IntentUtils.getInstance().startActivity(MainControlActivity.this, DeviceListActivity.class);
 			finish();
 			break;
 		}
@@ -916,8 +903,7 @@ public class MainControlActivity extends BaseActivity implements
 		mXpgWifiDevice.setListener(deviceListener);
 		mXpgWifiDevice.login(setmanager.getUid(), setmanager.getToken());
 		isTimeOut = false;
-		handler.sendEmptyMessageDelayed(handler_key.LOGIN_TIMEOUT.ordinal(),
-				LoginTimeOut);
+		handler.sendEmptyMessageDelayed(handler_key.LOGIN_TIMEOUT.ordinal(), LoginTimeOut);
 	}
 
 	/*
@@ -950,9 +936,7 @@ public class MainControlActivity extends BaseActivity implements
 	 */
 	private void DisconnectOtherDevice() {
 		for (XPGWifiDevice theDevice : bindlist) {
-			if (theDevice.isConnected()
-					&& !theDevice.getDid().equalsIgnoreCase(
-							mXpgWifiDevice.getDid()))
+			if (theDevice.isConnected() && !theDevice.getDid().equalsIgnoreCase(mXpgWifiDevice.getDid()))
 				mCenter.cDisconnect(theDevice);
 		}
 	}
@@ -969,8 +953,7 @@ public class MainControlActivity extends BaseActivity implements
 	 */
 	private void updateModeState(String pos) {
 		modePos = Integer.parseInt(pos);
-		tvMode.setCompoundDrawablesWithIntrinsicBounds(0, modeImages[modePos],
-				0, 0);
+		tvMode.setCompoundDrawablesWithIntrinsicBounds(0, modeImages[modePos], 0, 0);
 		tvMode.setText(modeStrs[modePos]);
 	}
 
@@ -1002,6 +985,7 @@ public class MainControlActivity extends BaseActivity implements
 	 *            the timing off
 	 */
 	private void updateOffTime(int timingOff) {
+		MainControlActivity.this.timingOff = timingOff;
 		tvTimeOff.setText(timingOff > 0 ? timingOff + "小时后关机" : "定时关机");
 	}
 
@@ -1012,6 +996,7 @@ public class MainControlActivity extends BaseActivity implements
 	 *            the timing on
 	 */
 	private void updateOnTime(int timingOn) {
+		MainControlActivity.this.timingOn = timingOn;
 		tvPowerOnStr.setText(timingOn > 0 ? timingOn + "小时后开机" : "定时开机");
 	}
 
@@ -1097,16 +1082,15 @@ public class MainControlActivity extends BaseActivity implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.gizwits.aircondition.activity.BaseActivity#didReceiveData(com.xtremeprog
-	 * .xpgconnect.XPGWifiDevice, java.util.concurrent.ConcurrentHashMap, int)
+	 * @see com.gizwits.aircondition.activity.BaseActivity#didReceiveData(com.
+	 * xtremeprog .xpgconnect.XPGWifiDevice,
+	 * java.util.concurrent.ConcurrentHashMap, int)
 	 */
 	@Override
-	protected void didReceiveData(XPGWifiDevice device,
-			ConcurrentHashMap<String, Object> dataMap, int result) {
-		if(!device.getDid().equalsIgnoreCase(mXpgWifiDevice.getDid()))
+	protected void didReceiveData(XPGWifiDevice device, ConcurrentHashMap<String, Object> dataMap, int result) {
+		if (!device.getDid().equalsIgnoreCase(mXpgWifiDevice.getDid()))
 			return;
-		
+
 		this.deviceDataMap = dataMap;
 		handler.sendEmptyMessage(handler_key.RECEIVED.ordinal());
 	}
@@ -1132,15 +1116,14 @@ public class MainControlActivity extends BaseActivity implements
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see
-	 * com.gizwits.aircondition.activity.BaseActivity#didDisconnected(com.xtremeprog
-	 * .xpgconnect.XPGWifiDevice)
+	 * @see com.gizwits.aircondition.activity.BaseActivity#didDisconnected(com.
+	 * xtremeprog .xpgconnect.XPGWifiDevice)
 	 */
 	@Override
 	protected void didDisconnected(XPGWifiDevice device) {
 		if (!device.getDid().equalsIgnoreCase(mXpgWifiDevice.getDid()))
 			return;
-		
+
 		handler.sendEmptyMessage(handler_key.DISCONNECTED.ordinal());
 	}
 
@@ -1156,14 +1139,20 @@ public class MainControlActivity extends BaseActivity implements
 		Log.i("revjson", json);
 		JSONObject receive = new JSONObject(json);
 		Iterator actions = receive.keys();
+
 		while (actions.hasNext()) {
 
 			String action = actions.next().toString();
+			String value = receive.getString(action);
 			Log.i("revjson", "action=" + action);
 			DeviceAlarm alarm = new DeviceAlarm(getDateCN(new Date()), action);
-			alarmList.add(alarm);
+			if (value.equals("1")) {
+				alarmList.add(alarm);
+			}
 		}
-		handler.sendEmptyMessage(handler_key.UPDATE_UI.ordinal());
+		if (alarmList.size() != 0) {
+			handler.sendEmptyMessage(handler_key.UPDATE_UI.ordinal());
+		}
 	}
 
 	/**
@@ -1176,9 +1165,8 @@ public class MainControlActivity extends BaseActivity implements
 	 * @throws JSONException
 	 *             the JSON exception
 	 */
-	private void inputDataToMaps(ConcurrentHashMap<String, Object> map,
-			String json) throws JSONException {
-		Log.i("revjson", json);
+	private void inputDataToMaps(ConcurrentHashMap<String, Object> map, String json) throws JSONException {
+		Log.i("Apptest", json);
 		JSONObject receive = new JSONObject(json);
 		Iterator actions = receive.keys();
 		while (actions.hasNext()) {
@@ -1186,8 +1174,7 @@ public class MainControlActivity extends BaseActivity implements
 			String action = actions.next().toString();
 			Log.i("revjson", "action=" + action);
 			// 忽略特殊部分
-			if (action.equals("cmd") || action.equals("qos")
-					|| action.equals("seq") || action.equals("version")) {
+			if (action.equals("cmd") || action.equals("qos") || action.equals("seq") || action.equals("version")) {
 				continue;
 			}
 			JSONObject params = receive.getJSONObject(action);
@@ -1221,31 +1208,31 @@ public class MainControlActivity extends BaseActivity implements
 		return (y + 1900) + "年" + m + "月" + d + "日  " + h + ":" + mt;
 
 	}
-	
+
 	/**
 	 * 菜单界面返回主控界面.
 	 * 
 	 * @return void
 	 */
 	private void backToMain() {
-		mXpgWifiDevice=mAdapter.getItem(mAdapter.getChoosedPos());
-		
+		mXpgWifiDevice = mAdapter.getItem(mAdapter.getChoosedPos());
+
 		if (!mXpgWifiDevice.isConnected()) {
 			loginDevice(mXpgWifiDevice);
 			DialogManager.showDialog(this, progressDialogRefreshing);
-		} 
-		
+		}
+
 		refreshMainControl();
 	}
 
 	@Override
 	public void OpenFinish() {
-		
+
 	}
 
 	@Override
 	public void CloseFinish() {
-		backToMain();		
+		backToMain();
 	}
 
 }

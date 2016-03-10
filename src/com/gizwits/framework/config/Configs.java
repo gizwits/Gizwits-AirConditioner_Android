@@ -45,4 +45,7 @@ public class Configs {
 	/**  日志保存文件名. */
 	public static final String LOG_FILE_NAME = "BassApp.log";
 
+	/** 产品密钥 */
+	public static final String APP_SECRET = "55f2b5c59d27420e808fe878eaa2026f";
+
 }
