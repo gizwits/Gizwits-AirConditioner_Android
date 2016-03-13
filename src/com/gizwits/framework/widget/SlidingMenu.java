@@ -194,6 +194,8 @@ public class SlidingMenu extends HorizontalScrollView {
 
 		if (mListener != null)
 			mListener.OpenFinish();
+		
+		
 	}
 
 	/**
@@ -208,6 +210,7 @@ public class SlidingMenu extends HorizontalScrollView {
 
 		if (mListener != null)
 			mListener.CloseFinish();
+		
 	}
 
 	/**
@@ -216,6 +219,7 @@ public class SlidingMenu extends HorizontalScrollView {
 	public void toggle() {
 		if (isOpen) {
 			closeMenu();
+			
 		} else {
 			openMenu();
 		}
