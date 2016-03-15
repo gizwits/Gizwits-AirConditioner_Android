@@ -17,11 +17,14 @@
  */
 package com.gizwits.framework.activity.account;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
-
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -35,6 +38,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,10 +46,12 @@ import android.widget.ToggleButton;
 
 import com.gizwits.aircondition.R;
 import com.gizwits.framework.activity.BaseActivity;
+import com.gizwits.framework.config.Configs;
 import com.gizwits.framework.widget.MyInputFilter;
 import com.xpg.common.useful.NetworkUtils;
 import com.xpg.common.useful.StringUtils;
 import com.xpg.ui.utils.ToastUtils;
+import com.xtremeprog.xpgconnect.XPGWifiSDK;
 
 /**
  * ClassName: Class ForgetPswActivity. <br/>
@@ -56,10 +62,45 @@ import com.xpg.ui.utils.ToastUtils;
  */
 public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	/**
+	 * The pb CaptchaCode_loading
+	 */
+	private ProgressBar CaptchaCode_loading;
+
+	/**
+	 * The ll InputPsw
+	 */
+	private LinearLayout llInputPsw;
+
+	/**
+	 * The ll InputCode
+	 */
+	private LinearLayout llInputCode;
+
+	/**
+	 * The ll layout_CaptchaCode
+	 */
+	private LinearLayout layout_CaptchaCode;
+
+	/**
+	 * The et InputCaptchaCode_farget
+	 */
+	private EditText etInputCaptchaCode_farget;
+
+	/**
+	 * The iv GetCaptchaCode_farget
+	 */
+	private ImageView ivGetCaptchaCode_farget;
+
+	/**
+	 * The btn ReGetCaptchaCode_farget
+	 */
+	private Button btnReGetCaptchaCode_farget;
+
+	/**
 	 * The tv dialog.
 	 */
-	 private TextView tvDialog;
-	
+	private TextView tvDialog;
+
 	/**
 	 * The et name.
 	 */
@@ -119,7 +160,7 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	 * The rl input email.
 	 */
 	private RelativeLayout rlInputEmail;
-	
+
 	/**
 	 * The rl dialog.
 	 */
@@ -183,6 +224,15 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 		 * Toast弹出通知
 		 */
 		TOAST,
+		/**
+		 * 获取图片验证码
+		 */
+		CaptchaCode,
+
+		/**
+		 * 修改UI
+		 */
+		CHANGE_UI
 
 	}
 
@@ -209,11 +259,14 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 		 * 通过邮箱重置密码
 		 */
 		EMAIL,
+
+		CHANGE
 	}
 
 	/**
 	 * The handler.
 	 */
+	@SuppressLint("HandlerLeak")
 	Handler handler = new Handler() {
 		public void handleMessage(Message msg) {
 			super.handleMessage(msg);
@@ -225,11 +278,11 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 				if (secondleft <= 0) {
 					timer.cancel();
 					btnReGetCode.setEnabled(true);
-					btnReGetCode.setText(R.string.forget_password_get_verifycode2);
-					btnReGetCode
-							.setBackgroundResource(R.drawable.button_blue_short);
+					btnReGetCode.setText("重新获取验证码");
+					btnReGetCode.setBackgroundResource(R.drawable.button_blue_short);
 				} else {
-					btnReGetCode.setText(secondleft +""+getResources().getText(R.string.forget_password_get_verifycode3));
+					btnReGetCode.setText(
+							secondleft + "" + getResources().getText(R.string.forget_password_get_verifycode3));
 
 				}
 				break;
@@ -242,6 +295,16 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 				tvDialog.setText((String) msg.obj);
 				rlDialog.setVisibility(View.VISIBLE);
 				dialog.cancel();
+				break;
+			case CaptchaCode:
+				ivGetCaptchaCode_farget.setVisibility(View.GONE);
+				CaptchaCode_loading.setVisibility(View.VISIBLE);
+				XPGWifiSDK.sharedInstance().getCaptchaCode(Configs.APP_SECRET);
+				break;
+			case CHANGE_UI:
+
+				toogleUI(ui_statu.CHANGE);
+				isStartTimer();
 				break;
 			}
 		}
@@ -265,7 +328,15 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	 * Inits the views.
 	 */
 	private void initViews() {
-		tvDialog=(TextView) findViewById(R.id.tvDialog);
+		layout_CaptchaCode = (LinearLayout) findViewById(R.id.layout_CaptchaCode);
+		CaptchaCode_loading = (ProgressBar) findViewById(R.id.CaptchaCode_loading);
+		llInputCode = (LinearLayout) findViewById(R.id.llInputCode);
+		llInputPsw = (LinearLayout) findViewById(R.id.llInputPsw);
+		etInputCaptchaCode_farget = (EditText) findViewById(R.id.etInputCaptchaCode_farget);
+		ivGetCaptchaCode_farget = (ImageView) findViewById(R.id.ivGetCaptchaCode_farget);
+		btnReGetCaptchaCode_farget = (Button) findViewById(R.id.btnReGetCaptchaCode_farget);
+		//
+		tvDialog = (TextView) findViewById(R.id.tvDialog);
 		etName = (EditText) findViewById(R.id.etName);
 		etInputCode = (EditText) findViewById(R.id.etInputCode);
 		etInputPsw = (EditText) findViewById(R.id.etInputPsw);
@@ -279,14 +350,14 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 		llInputMenu = (LinearLayout) findViewById(R.id.llInputMenu);
 		llInputPhone = (LinearLayout) findViewById(R.id.llInputPhone);
 		rlInputEmail = (RelativeLayout) findViewById(R.id.rlInputEmail);
-		rlDialog=(RelativeLayout) findViewById(R.id.rlDialog);
+		rlDialog = (RelativeLayout) findViewById(R.id.rlDialog);
 		ivBack = (ImageView) findViewById(R.id.ivBack);
 		tbPswFlag = (ToggleButton) findViewById(R.id.tbPswFlag);
 		toogleUI(ui_statu.DEFAULT);
 		dialog = new ProgressDialog(this);
 		dialog.setMessage("处理中，请稍候...");
-		
-		MyInputFilter filter= new MyInputFilter();
+
+		MyInputFilter filter = new MyInputFilter();
 		etInputPsw.setFilters(new InputFilter[] { filter });
 	}
 
@@ -294,6 +365,8 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	 * Inits the events.
 	 */
 	private void initEvents() {
+		btnReGetCaptchaCode_farget.setOnClickListener(this);
+		//
 		rlDialog.setOnClickListener(this);
 		btnGetCode.setOnClickListener(this);
 		btnReGetCode.setOnClickListener(this);
@@ -303,23 +376,18 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 		btnEmailReset.setOnClickListener(this);
 		// tvPhoneSwitch.setOnClickListener(this);
 		ivBack.setOnClickListener(this);
-		tbPswFlag
-				.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+		tbPswFlag.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 
-					@Override
-					public void onCheckedChanged(CompoundButton buttonView,
-							boolean isChecked) {
-						if (isChecked) {
-							etInputPsw
-									.setInputType(InputType.TYPE_CLASS_TEXT
-											| InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
-						} else {
-							etInputPsw.setInputType(InputType.TYPE_CLASS_TEXT
-									| InputType.TYPE_TEXT_VARIATION_PASSWORD);
-						}
-					}
+			@Override
+			public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+				if (isChecked) {
+					etInputPsw.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+				} else {
+					etInputPsw.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+				}
+			}
 
-				});
+		});
 	}
 
 	/*
@@ -330,28 +398,29 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
-		// case R.id.btnGetCode:
-		// String name = etName.getText().toString().trim();
-		// if(StringUtils.isEmpty(name)||name.length() != 11)
-		// ToastUtils.showShort(this, "请输入正确的账号。");
-		//
-		// sendVerifyCode(name);
-		// break;
-		case R.id.btnReGetCode:
+		case R.id.btnGetCode:
 			if (!NetworkUtils.isNetworkConnected(this)) {
-				ToastUtils.showShort(this, "网络未连接");return;
+				ToastUtils.showShort(this, "网络未连接");
+				return;
 			}
 			String phone2 = etName.getText().toString().trim();
-			if (StringUtils.isEmpty(phone2) || phone2.length() != 11){
+			if (StringUtils.isEmpty(phone2) || phone2.length() != 11) {
 				ToastUtils.showShort(this, "请输入正确的手机号码。");
 				return;
 			}
-
+			if (etInputCaptchaCode_farget.getText().toString().isEmpty()) {
+				ToastUtils.showShort(this, "请输入图片验证码。");
+				return;
+			}
 			sendVerifyCode(phone2);
+			break;
+		case R.id.btnReGetCode:
+			toogleUI(ui_statu.PHONE);
 			break;
 		case R.id.btnSure:
 			if (!NetworkUtils.isNetworkConnected(this)) {
-				ToastUtils.showShort(this, "网络未连接");return;
+				ToastUtils.showShort(this, "网络未连接");
+				return;
 			}
 			doChangePsw();
 			break;
@@ -360,10 +429,11 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 			break;
 		case R.id.btnSureEmail:
 			if (!NetworkUtils.isNetworkConnected(this)) {
-				ToastUtils.showShort(this, "网络未连接");return;
+				ToastUtils.showShort(this, "网络未连接");
+				return;
 			}
 			String email = etInputEmail.getText().toString().trim();
-			if (StringUtils.isEmpty(email) || !email.contains("@")){
+			if (StringUtils.isEmpty(email) || !email.contains("@")) {
 				ToastUtils.showShort(this, "请输入正确的账号。");
 				return;
 			}
@@ -379,12 +449,15 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 		case R.id.rlDialog:
 			rlDialog.setVisibility(View.GONE);
 			break;
+		case R.id.btnReGetCaptchaCode_farget:
+			handler.sendEmptyMessage(handler_key.CaptchaCode.ordinal());
+			break;
 		}
 	}
 
 	@Override
 	public void onBackPressed() {
-		if(rlDialog.getVisibility()==View.VISIBLE){
+		if (rlDialog.getVisibility() == View.VISIBLE) {
 			rlDialog.setVisibility(View.GONE);
 			return;
 		}
@@ -393,8 +466,13 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 			finish();
 			break;
 		case PHONE:
+			toogleUI(ui_statu.DEFAULT);
+			break;
 		case EMAIL:
 			toogleUI(ui_statu.DEFAULT);
+			break;
+		case CHANGE:
+			toogleUI(ui_statu.PHONE);
 			break;
 		}
 	}
@@ -420,12 +498,34 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 		case PHONE:
 			llInputMenu.setVisibility(View.GONE);
 			llInputPhone.setVisibility(View.VISIBLE);
+			layout_CaptchaCode.setVisibility(View.VISIBLE);
+			btnGetCode.setVisibility(View.VISIBLE);
 			rlInputEmail.setVisibility(View.GONE);
+			llInputCode.setVisibility(View.GONE);
+			llInputPsw.setVisibility(View.GONE);
+			btnSure.setVisibility(View.GONE);
+			etName.setInputType(InputType.TYPE_CLASS_NUMBER);
+			etInputCaptchaCode_farget.setText("");
+			etName.setEnabled(true);
+			handler.sendEmptyMessage(handler_key.CaptchaCode.ordinal());
 			break;
 		case EMAIL:
 			llInputMenu.setVisibility(View.GONE);
 			llInputPhone.setVisibility(View.GONE);
 			rlInputEmail.setVisibility(View.VISIBLE);
+			break;
+		case CHANGE:
+			llInputMenu.setVisibility(View.GONE);
+			llInputPhone.setVisibility(View.VISIBLE);
+			rlInputEmail.setVisibility(View.GONE);
+			layout_CaptchaCode.setVisibility(View.GONE);
+			btnGetCode.setVisibility(View.GONE);
+			llInputCode.setVisibility(View.VISIBLE);
+			llInputPsw.setVisibility(View.VISIBLE);
+			btnSure.setVisibility(View.VISIBLE);
+			etName.setEnabled(false);
+			etInputCode.setText("");
+			etInputPsw.setText("");
 			break;
 		}
 	}
@@ -477,23 +577,84 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	 *            the phone
 	 */
 	private void sendVerifyCode(final String phone) {
-		dialog.show();
-		btnReGetCode.setEnabled(false);
-		btnReGetCode.setBackgroundResource(R.drawable.button_gray_short);
-		secondleft = 60;
-		timer = new Timer();
-		timer.schedule(new TimerTask() {
 
-			@Override
-			public void run() {
-				// 倒计时通知
-				handler.sendEmptyMessage(handler_key.TICK_TIME.ordinal());
-			}
-		}, 1000, 1000);
+		String CaptchaCode = etInputCaptchaCode_farget.getText().toString();
+		dialog.show();
 		// 发送请求验证码指令
-		mCenter.cRequestSendVerifyCode(phone);
+		// mCenter.cRequestSendVerifyCode(phone);
+		// 发送请求验证码指令
+		Log.i("AppTest", tokenString + ", " + captchaidString + ", " + CaptchaCode + ", " + phone);
+		mCenter.cRequestSendVerifyCode(tokenString, captchaidString, CaptchaCode, phone);
 	}
 
+	/**
+	 * 图片验证码回调
+	 */
+	private String tokenString, captchaidString, captcthishaURL_String;
+
+	protected void didGetCaptchaCode(int result, java.lang.String errorMessage, java.lang.String token,
+			java.lang.String captchaId, java.lang.String captcthishaURL) {
+		Log.e("AppTest",
+				"图片验证码回调" + result + ", " + errorMessage + ", " + token + ", " + captchaId + ", " + captcthishaURL);
+		tokenString = token;
+		captchaidString = captchaId;
+		captcthishaURL_String = captcthishaURL;
+		new load_image().execute(captcthishaURL_String);
+	}
+
+	class load_image extends AsyncTask<String, Void, Drawable> {
+
+		/**
+		 * 加载网络图片
+		 * 
+		 * @param url
+		 * @return
+		 */
+		private Drawable LoadImageFromWebOperations(String url) {
+			InputStream is = null;
+			Drawable d = null;
+			try {
+				is = (InputStream) new URL(url).getContent();
+				d = Drawable.createFromStream(is, "src name");
+				return d;
+			} catch (Exception e) {
+				return null;
+			}
+		}
+
+		@Override
+		protected Drawable doInBackground(String... params) {
+			Drawable drawable = LoadImageFromWebOperations(params[0]);
+			return drawable;
+		}
+
+		@Override
+		protected void onPostExecute(Drawable result) {
+			super.onPostExecute(result);
+
+			ivGetCaptchaCode_farget.setImageDrawable(result);
+			CaptchaCode_loading.setVisibility(View.GONE);
+			ivGetCaptchaCode_farget.setVisibility(View.VISIBLE);
+		}
+
+	}
+
+	protected void didRequestSendPhoneSMSCode(int result, java.lang.String errorMessage) {
+		Log.e("AppTest", result + ", " + errorMessage);
+		if (result == 0) {// 发送成功
+			Message msg = new Message();
+			msg.what = handler_key.TOAST.ordinal();
+			msg.obj = "Send Succeessful";
+			handler.sendMessage(msg);
+			handler.sendEmptyMessage(handler_key.CHANGE_UI.ordinal());
+		} else {// 发送失败
+			Message msg = new Message();
+			msg.what = handler_key.TOAST.ordinal();
+			msg.obj = errorMessage;
+			handler.sendMessage(msg);
+			handler.sendEmptyMessage(handler_key.CaptchaCode.ordinal());
+		}
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -501,21 +662,15 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	 * com.gizwits.framework.activity.BaseActivity#didRequestSendVerifyCode(int,
 	 * java.lang.String)
 	 */
-	@Override
-	protected void didRequestSendVerifyCode(int error, String errorMessage) {
-		Log.i("error message ", error + " " + errorMessage);
-		if (error == 0) {// 发送成功
-			Message msg = new Message();
-			msg.what = handler_key.TOAST.ordinal();
-			msg.obj = "发送成功";
-			handler.sendMessage(msg);
-		} else {// 发送失败
-			Message msg = new Message();
-			msg.what = handler_key.TOAST.ordinal();
-			msg.obj = errorMessage;
-			handler.sendMessage(msg);
-		}
-	}
+	/*
+	 * @Override protected void didRequestSendVerifyCode(int error, String
+	 * errorMessage) { Log.i("error message ", error + " " + errorMessage); if
+	 * (error == 0) {// 发送成功 Message msg = new Message(); msg.what =
+	 * handler_key.TOAST.ordinal(); msg.obj = "发送成功"; handler.sendMessage(msg);
+	 * } else {// 发送失败 Message msg = new Message(); msg.what =
+	 * handler_key.TOAST.ordinal(); msg.obj = errorMessage;
+	 * handler.sendMessage(msg); } }
+	 */
 
 	/*
 	 * (non-Javadoc)
@@ -526,6 +681,7 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 	 */
 	@Override
 	protected void didChangeUserPassword(int error, String errorMessage) {
+		Log.e("Apptest", "timeout_Change");
 		if (error == 0) {// 修改成功
 			Message msg = new Message();
 			msg.what = handler_key.TOAST.ordinal();
@@ -538,8 +694,7 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 				msg.obj = "设置成功";
 			}
 			handler.sendMessage(msg);
-			handler.sendEmptyMessageDelayed(
-					handler_key.CHANGE_SUCCESS.ordinal(), 2000);
+			handler.sendEmptyMessageDelayed(handler_key.CHANGE_SUCCESS.ordinal(), 2000);
 
 		} else {// 修改失败
 			Message msg = new Message();
@@ -548,5 +703,20 @@ public class ForgetPswActivity extends BaseActivity implements OnClickListener {
 			handler.sendMessage(msg);
 		}
 		super.didChangeUserPassword(error, errorMessage);
+	}
+
+	public void isStartTimer() {
+		btnReGetCode.setEnabled(false);
+		btnReGetCode.setBackgroundResource(R.drawable.button_gray_short);
+		secondleft = 60;
+		timer = new Timer();
+		timer.schedule(new TimerTask() {
+
+			@Override
+			public void run() {
+				// 倒计时通知
+				handler.sendEmptyMessage(handler_key.TICK_TIME.ordinal());
+			}
+		}, 1000, 1000);
 	}
 }
