@@ -1,12 +1,12 @@
 智能云空调
 =============
 
-    此公版开源App已不再维护，机智云推出了物联开源框架App，并提供了其他开源案例供参考。机智云公版开源App项目地址：
+    此公版开源App已不再维护，机智云推出了物联开源框架，并提供了其他开源案例供参考。机智云公版开源App项目地址：
 
-    机智云物联开源框架App的Android Studio项目 https://github.com/gizwits/GOpenSource_AppKit_Android_AS
-    机智云物联开源框架App的Eclipse项目 https://github.com/gizwits/GizOpenSource_AppKit_Android
-    机智云智能灯2代App的Eclipse项目 https://github.com/gizwits/Gizwits-SmartBuld_Android
-    机智云Gokit App的Eclipse项目 https://github.com/gizwits/gokit-android
+    机智云物联开源框架Android Studio项目 https://github.com/gizwits/GOpenSource_AppKit_Android_AS
+    机智云物联开源框架Eclipse项目 https://github.com/gizwits/GizOpenSource_AppKit_Android
+    机智云智能灯2代Eclipse项目 https://github.com/gizwits/Gizwits-SmartBuld_Android
+    机智云Gokit的Eclipse项目 https://github.com/gizwits/gokit-android
     
     我们在机智云社区、QQ群提供技术支持，意见反馈渠道。机智云社区网址：http://club.gizwits.com/forum.php
 
