@@ -1,17 +1,12 @@
 智能云空调
 =============
 
-    此公版开源App已不再维护，机智云推出了物联开源框架App，并提供了其他开源案例供参考。
-    
-    机智云公版开源App项目地址：
-    机智云物联开源框架App的Android Studio项目：
-    https://github.com/gizwits/GOpenSource_AppKit_Android_AS
-    机智云物联开源框架App的Eclipse项目：
-    https://github.com/gizwits/GizOpenSource_AppKit_Android
-    机智云智能灯2代App的Eclipse项目：
-    https://github.com/gizwits/Gizwits-SmartBuld_Android
-    机智云Gokit App的Eclipse项目：
-    https://github.com/gizwits/gokit-android
+    此公版开源App已不再维护，机智云推出了物联开源框架App，并提供了其他开源案例供参考。机智云公版开源App项目地址：
+
+    机智云物联开源框架App的Android Studio项目 https://github.com/gizwits/GOpenSource_AppKit_Android_AS
+    机智云物联开源框架App的Eclipse项目 https://github.com/gizwits/GizOpenSource_AppKit_Android
+    机智云智能灯2代App的Eclipse项目 https://github.com/gizwits/Gizwits-SmartBuld_Android
+    机智云Gokit App的Eclipse项目 https://github.com/gizwits/gokit-android
     
     我们在机智云社区、QQ群提供技术支持，意见反馈渠道。机智云社区网址：http://club.gizwits.com/forum.php
 
@@ -25,8 +20,8 @@
 Gizwits Air Condition Android Demo App
 
 使用说明
-    
-    使用机智云开源APP之前，需要先在机智云开发平台创建您自己的产品和应用。
+
+    使用机智云开源APP之前，需要先在机智云开发平台创建您自己的产品和应用。
 
     开源App需要使用您申请的AppId、AppSecret以及您自己的产品ProductKey才能正常运行。
 
